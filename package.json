@@ -1,6 +1,6 @@
 {
   "name": "winpeek",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "description": "A Node.js addon to get the active window's name",
   "author": "Anthony Trinh",
