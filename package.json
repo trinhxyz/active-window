@@ -1,0 +1,19 @@
+{
+  "name": "winpeek",
+  "version": "1.0.0",
+  "main": "index.js",
+  "description": "A Node.js addon to get the active window's name",
+  "author": "Anthony Trinh",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "node-gyp rebuild",
+    "build": "node-gyp clean rebuild"
+  },
+  "keywords": [],
+  "license": "ISC",
+  "gypfile": true,
+  "dependencies": {
+    "bindings": "^1.5.0",
+    "node-addon-api": "^8.1.0"
+  }
+}
