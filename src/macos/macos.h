@@ -1,4 +1,5 @@
-
+#ifndef WINPEEK_H
+#define WINPEEK_H
 #include <napi.h>
 #include <Cocoa/Cocoa.h>
 #include <vector>
@@ -37,6 +38,6 @@ namespace WinPeek
         std::map<watch_t, watch_callback> watches;
     };
 
-} // namespace WinPeek
+} 
 
-#endif // WINPEEK_H
+#endif 

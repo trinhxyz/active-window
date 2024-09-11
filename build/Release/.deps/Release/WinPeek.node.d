@@ -1,0 +1,1 @@
+cmd_Release/WinPeek.node := c++ -bundle -undefined dynamic_lookup -Wl,-search_paths_first -mmacosx-version-min=10.15 -arch arm64 -L./Release -stdlib=libc++  -o Release/WinPeek.node Release/obj.target/WinPeek/src/macos/macos.o Release/obj.target/WinPeek/src/macos/module.o Release/nothing.a -lc++ -framework Foundation -framework AppKit -framework ApplicationServices
