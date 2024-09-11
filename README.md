@@ -1,6 +1,6 @@
 # **winpeek**
 
-A Node.js native addon  that allows you to get the name of the active window. 
+A Node.js native module that allows you to get the name of the window you currently have in focus.
 
 
 ## **Installation**
@@ -11,9 +11,8 @@ You can install winpeek via npm by running:
   ```
 
 ## **Usage**
-Here’s a simple example of how to use winpeek in your Node.js project:
   ```javascript
-  const { getActiveWindow } = require('winpeek');
+  import { getActiveWindow } from 'winpeek'
   
   const activeWindowName = getActiveWindow();
   if (activeWindowName) {
