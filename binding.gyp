@@ -28,7 +28,7 @@
 				["OS=='mac'", {
 					"sources": [
 						"src/macos/macos.mm",
-						"src/macos/module.mm",
+						"src/macos/module.mm"
 					],
 					"libraries": [
 						"-lc++",
