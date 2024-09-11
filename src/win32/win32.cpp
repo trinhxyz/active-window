@@ -1,4 +1,7 @@
 #include "win32.h"
+#include <dwmapi.h> // Required for DwmGetWindowAttribute
+#include <iostream>
+#pragma comment(lib, "dwmapi.lib") // Link with Dwmapi.lib
 
 namespace WinPeek
 {
@@ -10,9 +13,10 @@ namespace WinPeek
     {
         HWND hwnd = GetForegroundWindow();
 
-        if (hwnd == NULL)
+        // If no window is in focus, the desktop is in focus, or the window is cloaked/minimized
+        if (hwnd == NULL || hwnd == GetShellWindow() || IsIconic(hwnd) || isWindowCloaked(hwnd))
         {
-            return L"NULL"; // No active window
+            return L"NULL"; // No active window or minimized/cloaked window
         }
 
         DWORD pid;
@@ -58,5 +62,13 @@ namespace WinPeek
         }
 
         return path; // Return full path if separator not found
+    }
+
+    // Helper function to check if the window is cloaked (hidden or minimized)
+    bool WinPeek::isWindowCloaked(HWND hwnd)
+    {
+        int isCloaked = 0;
+        HRESULT hr = DwmGetWindowAttribute(hwnd, DWMWA_CLOAKED, &isCloaked, sizeof(isCloaked));
+        return SUCCEEDED(hr) && isCloaked != 0;
     }
 }

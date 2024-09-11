@@ -1,6 +1,3 @@
-#ifndef WINPEEK_H
-#define WINPEEK_H
-
 #include <windows.h>
 #include <psapi.h>
 #include <string>
@@ -22,7 +19,7 @@ namespace WinPeek
 
         // Helper method to get the file name from a full path
         std::wstring getFileName(const std::wstring &path);
+
+        bool isWindowCloaked(HWND hwnd);
     };
 }
-
-#endif

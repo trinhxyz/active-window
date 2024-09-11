@@ -1,4 +1,5 @@
 #include "macos.h"
+#include <CoreGraphics/CoreGraphics.h> // Needed for CGWindowListCopyWindowInfo
 
 namespace WinPeek {
     WinPeek::WinPeek() {
@@ -23,16 +24,39 @@ namespace WinPeek {
         }]);
     }
 
-
     const char* WinPeek::getActiveWindow() {
         NSWorkspace* workspace = [NSWorkspace sharedWorkspace];
         NSRunningApplication* app = [workspace frontmostApplication];
 
         if (app == nil) {
-            return NULL;
+            return NULL; // No active application
         }
 
-        return [app.localizedName UTF8String];
+        // Check if any windows of the frontmost application are minimized
+        CFArrayRef windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly, kCGNullWindowID);
+        bool allWindowsMinimized = true;
+
+        for (CFIndex i = 0; i < CFArrayGetCount(windowList); i++) {
+            CFDictionaryRef windowInfo = (CFDictionaryRef)CFArrayGetValueAtIndex(windowList, i);
+            int64_t windowOwnerPID = 0;
+            CFNumberGetValue((CFNumberRef)CFDictionaryGetValue(windowInfo, kCGWindowOwnerPID), kCFNumberSInt64Type, &windowOwnerPID);
+
+            if (windowOwnerPID == app.processIdentifier) {
+                CFBooleanRef isMinimized = (CFBooleanRef)CFDictionaryGetValue(windowInfo, kCGWindowIsOnScreen);
+                if (isMinimized == kCFBooleanTrue) {
+                    allWindowsMinimized = false;
+                    break;
+                }
+            }
+        }
+
+        CFRelease(windowList);
+
+        if (allWindowsMinimized) {
+            return NULL; // Return NULL if all windows of the frontmost app are minimized
+        }
+
+        return [app.localizedName UTF8String]; // Return the name of the active window
     }
 
     void WinPeek::handleNotification() {
@@ -47,6 +71,6 @@ namespace WinPeek {
     }
 
     void WinPeek::runLoop() {
-		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.0001, true);
-	}
+        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.0001, true);
+    }
 }

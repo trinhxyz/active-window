@@ -33,7 +33,6 @@ namespace module
         // Get the active window name from the WinPeek instance
         std::wstring windowName = winPeek->getActiveAppName();
 
-        // Check if the window name is "NULL", meaning no active window
         if (windowName == L"NULL")
         {
             return env.Null();
