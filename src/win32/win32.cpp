@@ -1,125 +1,62 @@
-#include <windows.h>
-#include <napi.h>
-#include <string>
-#include <psapi.h>
-#include <dwmapi.h>
+#include "win32.h"
 
-// Define constants for different window states
-const std::string NO_ACTIVE_WINDOW = "NO_ACTIVE_WINDOW";
-const std::string CLOAKED = "CLOAKED";
-const std::string UNKNOWN = "UNKNOWN";
-
-// Helper function to get the file name from a full path
-std::string getFileName(const std::string &value)
+namespace WinPeek
 {
-    char separator = '/';
-#ifdef _WIN32
-    separator = '\\';
-#endif
-    size_t index = value.rfind(separator, value.length());
+    WinPeek::WinPeek() = default;
+    WinPeek::~WinPeek() = default;
 
-    if (index != std::string::npos)
+    // Get the name of the active application
+    std::wstring WinPeek::getActiveAppName()
     {
-        std::string filename = value.substr(index + 1, value.length() - index);
-        if (filename.size() > 4 && filename.substr(filename.size() - 4) == ".exe")
+        HWND hwnd = GetForegroundWindow();
+
+        if (hwnd == NULL)
         {
-            filename = filename.substr(0, filename.size() - 4);
+            return L"NULL"; // No active window
         }
-        return filename;
+
+        DWORD pid;
+        GetWindowThreadProcessId(hwnd, &pid);
+        HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
+
+        if (hProc == NULL)
+        {
+            return L"NULL"; // Unable to open process
+        }
+
+        std::wstring processName = getProcessName(hProc);
+        CloseHandle(hProc);
+
+        return getFileName(processName); // Extract and return the executable name
     }
 
-    return value;
-}
-
-// Convert wstring to UTF-8 string
-std::string toUtf8(const std::wstring &str)
-{
-    std::string ret;
-    int len = WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0, NULL, NULL);
-    if (len > 0)
+    // Helper function to get the process name from the process handle
+    std::wstring WinPeek::getProcessName(HANDLE hProc)
     {
-        ret.resize(len);
-        WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.length(), &ret[0], len, NULL, NULL);
+        wchar_t exeName[MAX_PATH];
+        if (GetModuleFileNameExW(hProc, NULL, exeName, MAX_PATH))
+        {
+            return std::wstring(exeName);
+        }
+
+        return L"UNKNOWN";
     }
 
-    return ret;
-}
-
-// Get the process name from the handle
-std::string getProcessName(const HANDLE &processHandle)
-{
-    wchar_t exeName[MAX_PATH]{};
-    if (GetModuleFileNameExW(processHandle, NULL, exeName, MAX_PATH))
+    // Helper function to get the file name from a full path
+    std::wstring WinPeek::getFileName(const std::wstring &path)
     {
-        return getFileName(toUtf8(exeName));
-    }
-    else
-    {
-        return UNKNOWN;
+        size_t pos = path.find_last_of(L"\\/");
+        if (pos != std::wstring::npos)
+        {
+            std::wstring fileName = path.substr(pos + 1);
+            size_t extPos = fileName.find(L".exe");
+            if (extPos != std::wstring::npos)
+            {
+                return fileName.substr(0, extPos); // Return only the file name without the extension
+            }
+            return fileName;
+        }
+
+        return path; // Return full path if separator not found
     }
 }
-
-// Check if window is cloaked
-bool isWindowCloaked(HWND hwnd)
-{
-    int cloaked = 0;
-    HRESULT hr = DwmGetWindowAttribute(hwnd, DWMWA_CLOAKED, &cloaked, sizeof(cloaked));
-    return (SUCCEEDED(hr) && cloaked != 0);
-}
-
-// Get the active window's name
-std::string getActiveWindowName()
-{
-    HWND hwnd = GetForegroundWindow();
-
-    // If no window is in focus or the desktop is in focus
-    if (hwnd == NULL || hwnd == GetShellWindow())
-    {
-        return NO_ACTIVE_WINDOW;
-    }
-
-    // Check if the window is cloaked (hidden)
-    if (isWindowCloaked(hwnd))
-    {
-        return NO_ACTIVE_WINDOW;
-    }
-
-    DWORD processId;
-    GetWindowThreadProcessId(hwnd, &processId);
-    HANDLE processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processId);
-
-    if (processHandle == NULL)
-    {
-        return UNKNOWN;
-    }
-
-    std::string name = getProcessName(processHandle);
-    CloseHandle(processHandle);
-
-    return name;
-}
-
-// N-API wrapper for getActiveWindowName
-Napi::Value getActiveWindow(const Napi::CallbackInfo &info)
-{
-    Napi::Env env = info.Env();
-    std::string activeWindowName = getActiveWindowName();
-
-    // Return null if no active window is found
-    if (activeWindowName == NO_ACTIVE_WINDOW || activeWindowName == UNKNOWN)
-    {
-        return env.Null();
-    }
-
-    // Return the window name as a JavaScript string
-    return Napi::String::New(env, activeWindowName);
-}
-
-// Init function to export the method to JavaScript
-Napi::Object Init(Napi::Env env, Napi::Object exports)
-{
-    exports.Set("getActiveWindow", Napi::Function::New(env, getActiveWindow));
-    return exports;
-}
-
-NODE_API_MODULE(addon, Init)
