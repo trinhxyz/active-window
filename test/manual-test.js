@@ -1,4 +1,4 @@
-const addon = require('./build/Release/winpeek');
+const addon = require('winpeek');
 
 setInterval(() => {    
         const activeWindow = addon.getActiveWindow();

@@ -1,32 +1,47 @@
 {
   "name": "winpeek",
-  "version": "1.0.1",
+  "version": "2.1.1",
   "main": "index.js",
+  "types": "./types/winpeek.d.ts",
   "description": "A Node.js addon to get the active window's name",
   "author": "Anthony Trinh",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "install": "prebuild-install -r napi || node-gyp rebuild",
     "prebuild": "prebuild --all -r napi --strip",
-    "build": "node-gyp clean rebuild"
+    "build": "node-gyp clean rebuild",
+    "prebuild:x64": "prebuild --all -r napi --arch x64",
+    "prebuild:x86": "prebuild --all -r napi --arch ia32",
+    "build:windows": "node-pre-gyp build",
+    "clean": "node-pre-gyp clean",
+    "install": "node-pre-gyp install --fallback-to-build",
+    "rebuild": "node-pre-gyp rebuild",
+    "package": "node-pre-gyp package",
+    "publish": "node-pre-gyp publish"
+  },
+  "binary": {
+    "module_name": "winpeek",
+    "module_path": "./lib/binding/napi-{napi_build_version}-{platform}/",
+    "host": "https://github.com/trinhxyz/winpeek/releases/download/",
+    "remote_path": "v{version}/napi-v{napi_build_version}/",
+    "package_name": "napi-v{napi_build_version}-{platform}.tar.gz",
+    "napi_versions": [
+      9
+    ]
   },
   "keywords": [],
   "license": "ISC",
   "gypfile": true,
   "dependencies": {
+    "@mapbox/node-pre-gyp": "^1.0.11",
     "bindings": "^1.5.0",
     "node-addon-api": "^8.1.0"
-  },
-  "binary": {
-    "napi_versions": [
-      9
-    ]
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/trinhxyz/winpeek.git"
   },
   "devDependencies": {
+    "@types/node": "^22.5.4",
     "prebuild": "^13.0.1",
     "prebuild-install": "^7.1.2"
   }

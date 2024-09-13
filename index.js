@@ -1,13 +1,9 @@
-let activeWindowModule;
+'use strict';
 
-if (process.platform === 'darwin') {
-  activeWindowModule = require('./build/Release/macos.node');
-} else if (process.platform === 'win32') {
-  activeWindowModule = require('./build/Release/win32.node');
-} else {
-  throw new Error('Unsupported platform: ' + process.platform);
-}
+module.exports = options => {
+	if (process.platform === 'win32') {
+		return require('./src/win32/index.js')(options);
+	}
 
-module.exports = {
-  getActiveWindow: activeWindowModule.getActiveWindow
+	return Promise.reject(new Error('macOS, Linux, and Windows only'));
 };

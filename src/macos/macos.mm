@@ -42,7 +42,7 @@ namespace WinPeek {
             CFNumberGetValue((CFNumberRef)CFDictionaryGetValue(windowInfo, kCGWindowOwnerPID), kCFNumberSInt64Type, &windowOwnerPID);
 
             if (windowOwnerPID == app.processIdentifier) {
-                CFBooleanRef isMinimized = (CFBooleanRef)CFDictionaryGetValue(windowInfo, kCGWindowIsOnScreen);
+                CFBooleanRef isMinimized = (CFBooleanRef)CFDictionaryGetValue(windowInfo, kCGWindowIsOnscreen);
                 if (isMinimized == kCFBooleanTrue) {
                     allWindowsMinimized = false;
                     break;
